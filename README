@@ -1,0 +1,16 @@
+#Predykcja zainteresowania postami w social media z użyciem metod NLP 
+
+## Jak uruchomić projekt
+1. Sklonowanie repozytorium.
+2. Instalacja bibliotek: `pip install -r requirements.txt`.
+3. Konfiguracja dostępu do Kaggle:
+   - Zaloguj się na Kaggle -> *Settings* -> *API Tokens* -> *Create Legacy API Key*.
+   - W głównym folderze projektu stwórz plik `.env`.
+   - Wpisz w nim swoje dane z pliku .json który pobrał się automatycznie po stworzeniu API Key:
+     ```
+     KAGGLE_USERNAME=twój_username
+     KAGGLE_KEY=twój_klucz_api
+     ```
+4. Uruchom skrypt: `py main.py`.
+
+Zespół realizujący: Rafał Wiszniowski, Bartosz Amalio, Marcin Oracz
