@@ -1,16 +1,43 @@
-#Predykcja zainteresowania postami w social media z użyciem metod NLP 
+# Predykcja zainteresowania postami w social media z użyciem metod NLP
+
+## Opis projektu
+Projekt realizowany w ramach przedmiotu MIO.
+Cel: budowa modelu predykcyjnego przewidującego zainteresowanie tweetami Donalda Trumpa (mierzone liczbą retweetów)
+z wykorzystaniem metod NLP.
+
+Dane źródłowe: [Trump Tweets – Kaggle](https://www.kaggle.com/datasets/austinreese/trump-tweets)
+
+## Struktura projektu
+```
+TODO
+```
 
 ## Jak uruchomić projekt
 1. Sklonowanie repozytorium.
 2. Instalacja bibliotek: `pip install -r requirements.txt`.
 3. Konfiguracja dostępu do Kaggle:
-   - Zaloguj się na Kaggle -> *Settings* -> *API Tokens* -> *Create Legacy API Key*.
+   - Zaloguj się na Kaggle → *Settings* → *API Tokens* → *Create Legacy API Key*.
    - W głównym folderze projektu stwórz plik `.env`.
-   - Wpisz w nim swoje dane z pliku .json który pobrał się automatycznie po stworzeniu API Key:
-     ```
+   - Wpisz w nim swoje dane z pliku `.json` który pobrał się automatycznie po stworzeniu API Key:
+```
      KAGGLE_USERNAME=twój_username
      KAGGLE_KEY=twój_klucz_api
-     ```
+```
 4. Uruchom skrypt: `py main.py`.
 
-Zespół realizujący: Rafał Wiszniowski, Bartosz Amalio, Marcin Oracz
+## Pipeline
+Na chwilę obecną zaimplementowane są dwa pierwsze kroki:
+
+```
+ingestion → preprocessing → modeling (TODO) → interpretation (TODO)
+```
+
+| Krok | Plik | Status |
+|---|---|---|
+| Pobieranie danych z Kaggle | `src/ingestion.py` | Done |
+| Czyszczenie tekstu + TF-IDF | `src/preprocessing.py` | Done |
+| Trening modelu | `src/modeling.py` | ... |
+| Analiza SHAP | `src/interpretation.py` | ... |
+
+## Zespół realizujący
+Rafał Wiszniowski, Bartosz Amalio, Marcin Oracz
