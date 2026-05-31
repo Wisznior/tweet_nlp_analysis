@@ -6,6 +6,7 @@ from typing import List
 from src.utils.logger import setup_logging
 from src.ingestion import DataIngestor
 from src.database import DatabaseManager
+from src.preprocessing import prepare_data
 
 def main():
     setup_logging(log_level=logging.INFO, log_file="data/project_run.log")
@@ -31,6 +32,13 @@ def main():
 
         db_mgr = DatabaseManager(DB_PATH)
         db_mgr.save_dataframe(df, 'raw_tweets')
+
+        logger.info("Startring preprocessing")
+        X_train, X_test, y_train, y_test, feature_names = prepare_data(
+            db_engine=db_mgr.get_engine(),
+            vectorizer_path="data/tfidf_vectorizer.pkl"
+        )
+        logger.info("Preprocssing completed.")
 
         logger.info("Succeded!")
 
