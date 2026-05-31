@@ -7,6 +7,8 @@ from src.utils.logger import setup_logging
 from src.ingestion import DataIngestor
 from src.database import DatabaseManager
 from src.preprocessing import prepare_data
+import joblib
+from src.modeling import train_and_evaluate_all, save_model
 
 def main():
     setup_logging(log_level=logging.INFO, log_file="data/project_run.log")
@@ -38,7 +40,19 @@ def main():
             db_engine=db_mgr.get_engine(),
             vectorizer_path="data/tfidf_vectorizer.pkl"
         )
-        logger.info("Preprocssing completed.")
+        logger.info("Preprocessing completed.")
+
+        logger.info("Starting model training and evaluation")
+        results_df, trained_models = train_and_evaluate_all(X_train, X_test, y_train, y_test)
+
+        best_model_name = results_df.iloc[0]["model"]
+        logger.info(f"Best model: {best_model_name} (F1: {results_df.iloc[0]['f1_weighted']:.4f})")
+
+        best_model = trained_models[best_model_name]
+        save_model(best_model, "data/best_model.pkl")
+
+        joblib.dump((X_test, y_test, feature_names), "data/test_data.pkl")
+        logger.info("Saved test data for SHAP to data/test_data.pkl")
 
         logger.info("Succeded!")
 
