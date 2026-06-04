@@ -9,6 +9,7 @@ from src.database import DatabaseManager
 from src.preprocessing import prepare_data
 import joblib
 from src.modeling import train_and_evaluate_all, save_model
+from src.interpretation import run_interpretation
 
 def main():
     setup_logging(log_level=logging.INFO, log_file="data/project_run.log")
@@ -49,10 +50,24 @@ def main():
         logger.info(f"Best model: {best_model_name} (F1: {results_df.iloc[0]['f1_weighted']:.4f})")
 
         best_model = trained_models[best_model_name]
+        shap_compatible = ["random_forest", "naive_bayes", "logistic_regression"]
+        shap_model_name = next((m for m in results_df["model"] if m in shap_compatible), None)
+        shap_model = trained_models[shap_model_name]
+        joblib.dump(shap_model, "data/shap_model.pkl")
+        logger.info(f"SHAP-compatible model saved: {shap_model_name}")
+
         save_model(best_model, "data/best_model.pkl")
 
         joblib.dump((X_test, y_test, feature_names), "data/test_data.pkl")
         logger.info("Saved test data for SHAP to data/test_data.pkl")
+
+        logger.info("Starting SHAP interpretation")
+        run_interpretation(
+            model_path="data/shap_model.pkl",
+            test_data_path="data/test_data.pkl",
+            sample_size=500
+        )
+        logger.info("Interpretation completed.")
 
         logger.info("Succeded!")
 
