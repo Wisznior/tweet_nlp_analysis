@@ -39,7 +39,8 @@ def main():
         logger.info("Startring preprocessing")
         X_train, X_test, y_train, y_test, feature_names = prepare_data(
             db_engine=db_mgr.get_engine(),
-            vectorizer_path="data/tfidf_vectorizer.pkl"
+            vectorizer_path="data/tfidf_vectorizer.pkl",
+            use_metadata=True
         )
         logger.info("Preprocessing completed.")
 

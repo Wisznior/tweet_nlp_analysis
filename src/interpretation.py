@@ -31,7 +31,8 @@ def compute_shap_values(model, X_sample, feature_names):
 
     if model_type in ("RandomForestClassifier" ):
         explainer = shap.TreeExplainer(model)
-        shap_values = explainer.shap_values(X_sample)
+        X_dense = X_sample.toarray() if hasattr(X_sample, "toarray") else X_sample
+        shap_values = explainer.shap_values(X_dense, approximate=True, check_additivity=False)
     elif model_type in ( "LogisticRegression", "LinearSVC"):
         explainer = shap.LinearExplainer(model, X_sample)
         shap_values = explainer.shap_values(X_sample)
