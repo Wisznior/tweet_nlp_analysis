@@ -52,5 +52,19 @@ python -m src.representation_comparison
 ```
 Tabela zapisywana jest do `data/representation_comparison.csv`.
 
+## Cechy metadanych
+Eksperyment rozszerzający reprezentację o cechy metadanych tweeta — długość, liczba słów,
+godzina publikacji, dzień tygodnia oraz flaga obecności URL. Cechy te są skalowane i łączone
+z macierzą TF-IDF (`scipy.sparse.hstack`), a następnie porównywane z baseline'em (samo TF-IDF)
+pod kątem F1 dla każdego modelu. Analiza SHAP sprawdza, jak ważność cech metadanych wypada
+na tle pojedynczych słów.
+
+Uruchomienie (wymaga wcześniejszego `py main.py`, który buduje bazę z danymi):
+```
+python -m src.metadata_features
+```
+Tabela porównawcza zapisywana jest do `data/metadata_comparison.csv`, a wykres ważności SHAP
+do `data/plots/metadata_shap_bar.png`.
+
 ## Zespół realizujący
 Rafał Wiszniowski, Bartosz Amalio, Marcin Oracz

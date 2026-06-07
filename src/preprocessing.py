@@ -62,7 +62,7 @@ def build_tfidf(texts, max_features: int = 5000) -> tuple:
 def load_and_clean(db_engine) -> tuple:
     logger.info("Loadingdata from database")
     df = pd.read_sql(
-        "SELECT content, retweets FROM raw_tweets",
+        "SELECT content, retweets, date FROM raw_tweets",
         db_engine
     )
     logger.info(f"Loaded {len(df)} tweets")
@@ -76,6 +76,25 @@ def load_and_clean(db_engine) -> tuple:
 
     y = create_target(df)
     return df, y
+
+
+def build_metadata_features(df) -> tuple:
+    content = df['content'].astype(str)
+    dates = pd.to_datetime(df['date'], errors='coerce')
+
+    features = pd.DataFrame({
+        'length': content.str.len(),
+        'word_count': content.str.split().str.len(),
+        'hour': dates.dt.hour,
+        'dayofweek': dates.dt.dayofweek,
+        'has_url': content.str.contains('http', case=False, regex=False).astype(int),
+    })
+
+    feature_names = ['length', 'word_count', 'hour', 'dayofweek', 'has_url']
+    X_meta = features[feature_names].to_numpy(dtype=float)
+
+    logger.info(f"Metadata features: {X_meta.shape[0]} rows, {X_meta.shape[1]} features")
+    return X_meta, feature_names
 
 
 def prepare_data(db_engine, vectorizer_path: str = 'data/tfidf_vectorizer.pkl'):
