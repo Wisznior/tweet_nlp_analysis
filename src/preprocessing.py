@@ -2,7 +2,7 @@ import re
 import logging
 import joblib
 import pandas as pd
-from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.model_selection import train_test_split
 import nltk
 from nltk.corpus import stopwords
@@ -41,13 +41,17 @@ def create_target(df: pd.DataFrame) -> pd.Series:
     
     return df['retweets'].apply(label)
 
+def build_vectorizer(method: str = "tfidf", ngram_range: tuple = (1, 2), max_features: int = 5000):
+    params = dict(max_features=max_features, ngram_range=ngram_range, min_df=5, max_df=0.95)
+    if method == "tfidf":
+        return TfidfVectorizer(**params)
+    if method == "bow":
+        return CountVectorizer(**params)
+    raise ValueError(f"Unknown method '{method}'. Use 'tfidf' or 'bow'.")
+
+
 def build_tfidf(texts, max_features: int = 5000) -> tuple:
-    vectorizer = TfidfVectorizer(
-        max_features=max_features,
-        ngram_range=(1,2),
-        min_df=5,
-        max_df=0.95
-    )
+    vectorizer = build_vectorizer("tfidf", (1, 2), max_features)
 
     X = vectorizer.fit_transform(texts)
 
@@ -55,7 +59,7 @@ def build_tfidf(texts, max_features: int = 5000) -> tuple:
 
     return X, vectorizer
 
-def prepare_data(db_engine, vectorizer_path: str = 'data/tfidf_vectorizer.pkl'):
+def load_and_clean(db_engine) -> tuple:
     logger.info("Loadingdata from database")
     df = pd.read_sql(
         "SELECT content, retweets FROM raw_tweets",
@@ -71,6 +75,11 @@ def prepare_data(db_engine, vectorizer_path: str = 'data/tfidf_vectorizer.pkl'):
     logger.info(f"Removed {before - len(df)} empty tweets after cleaning, {len(df)} tweets remaining")
 
     y = create_target(df)
+    return df, y
+
+
+def prepare_data(db_engine, vectorizer_path: str = 'data/tfidf_vectorizer.pkl'):
+    df, y = load_and_clean(db_engine)
 
     logger.info("Building TF-IDF matrix")
     X, vectorizer = build_tfidf(df['clean'])

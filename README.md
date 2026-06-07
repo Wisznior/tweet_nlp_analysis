@@ -39,5 +39,18 @@ ingestion → preprocessing → modeling (TODO) → interpretation (TODO)
 | Trening modelu | `src/modeling.py` | ... |
 | Analiza SHAP | `src/interpretation.py` | ... |
 
+## Porównanie metod reprezentacji tekstu
+Osobny eksperyment porównujący trzy reprezentacje tekstu — Bag of Words (`CountVectorizer`),
+TF-IDF unigramy oraz TF-IDF unigramy+bigramy — na każdym z modeli klasyfikacyjnych.
+Wszystkie reprezentacje korzystają z tego samego podziału train/test, a wektoryzator jest
+dopasowywany wyłącznie na zbiorze treningowym. Wynikiem jest siatka accuracy + F1 dla każdej
+kombinacji reprezentacja × model.
+
+Uruchomienie (wymaga wcześniejszego `py main.py`, który buduje bazę z danymi):
+```
+python -m src.representation_comparison
+```
+Tabela zapisywana jest do `data/representation_comparison.csv`.
+
 ## Zespół realizujący
 Rafał Wiszniowski, Bartosz Amalio, Marcin Oracz
