@@ -4,6 +4,7 @@ from pathlib import Path
 
 def setup_logging(log_level: int = logging.INFO, log_file: str = "project.log") -> None:
     log_path = Path(log_file)
+    log_path.parent.mkdir(parents=True, exist_ok=True)
 
     log_format = logging.Formatter(
         fmt='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
