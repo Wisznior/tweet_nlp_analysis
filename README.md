@@ -35,7 +35,7 @@ ingestion → preprocessing → modeling (TODO) → interpretation (TODO)
 | Krok | Plik | Status |
 |---|---|---|
 | Pobieranie danych z Kaggle | `src/ingestion.py` | Done |
-| Czyszczenie tekstu + TF-IDF | `src/preprocessing.py` | Done |
+| Czyszczenie tekstu, TF-IDF i cechy metadanych | `src/preprocessing.py` | Done |
 | Trening modelu | `src/modeling.py` | ... |
 | Analiza SHAP | `src/interpretation.py` | ... |
 
@@ -51,6 +51,20 @@ Uruchomienie (wymaga wcześniejszego `py main.py`, który buduje bazę z danymi)
 python -m src.representation_comparison
 ```
 Tabela zapisywana jest do `data/representation_comparison.csv`.
+
+## Cechy metadanych
+Główny pipeline (`py main.py`) rozszerza reprezentację tekstu o cechy metadanych tweeta —
+długość, liczbę słów, godzinę publikacji, dzień tygodnia oraz flagę obecności URL. Cechy te są
+skalowane i łączone z macierzą TF-IDF (`scipy.sparse.hstack`); odpowiada za to parametr
+`use_metadata` w `prepare_data` (domyślnie wyłączony, w `main.py` włączony).
+
+Osobny skrypt analityczny porównuje F1 modeli na samym TF-IDF względem TF-IDF + metadane oraz
+sprawdza analizą SHAP, jak ważność cech metadanych wypada na tle pojedynczych słów:
+```
+python -m src.metadata_features
+```
+Tabela porównawcza zapisywana jest do `data/metadata_comparison.csv`, a wykres ważności SHAP
+do `data/plots/metadata_shap_bar.png`.
 
 ## Zespół realizujący
 Rafał Wiszniowski, Bartosz Amalio, Marcin Oracz

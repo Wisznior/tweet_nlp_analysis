@@ -4,6 +4,8 @@ import joblib
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import MinMaxScaler
+from scipy.sparse import hstack, csr_matrix
 import nltk
 from nltk.corpus import stopwords
 
@@ -62,7 +64,7 @@ def build_tfidf(texts, max_features: int = 5000) -> tuple:
 def load_and_clean(db_engine) -> tuple:
     logger.info("Loadingdata from database")
     df = pd.read_sql(
-        "SELECT content, retweets FROM raw_tweets",
+        "SELECT content, retweets, date FROM raw_tweets",
         db_engine
     )
     logger.info(f"Loaded {len(df)} tweets")
@@ -78,11 +80,39 @@ def load_and_clean(db_engine) -> tuple:
     return df, y
 
 
-def prepare_data(db_engine, vectorizer_path: str = 'data/tfidf_vectorizer.pkl'):
+def build_metadata_features(df) -> tuple:
+    content = df['content'].astype(str)
+    dates = pd.to_datetime(df['date'], errors='coerce')
+
+    features = pd.DataFrame({
+        'length': content.str.len(),
+        'word_count': content.str.split().str.len(),
+        'hour': dates.dt.hour,
+        'dayofweek': dates.dt.dayofweek,
+        'has_url': content.str.contains('http', case=False, regex=False).astype(int),
+    })
+
+    feature_names = ['length', 'word_count', 'hour', 'dayofweek', 'has_url']
+    X_meta = features[feature_names].to_numpy(dtype=float)
+
+    logger.info(f"Metadata features: {X_meta.shape[0]} rows, {X_meta.shape[1]} features")
+    return X_meta, feature_names
+
+
+def prepare_data(db_engine, vectorizer_path: str = 'data/tfidf_vectorizer.pkl', use_metadata: bool = False):
     df, y = load_and_clean(db_engine)
 
     logger.info("Building TF-IDF matrix")
     X, vectorizer = build_tfidf(df['clean'])
+    feature_names = list(vectorizer.get_feature_names_out())
+
+    if use_metadata:
+        logger.info("Adding metadata features")
+        X_meta, meta_names = build_metadata_features(df)
+        X_meta = MinMaxScaler().fit_transform(X_meta)
+        X = hstack([X, csr_matrix(X_meta)]).tocsr()
+        feature_names = feature_names + meta_names
+        logger.info(f"Combined matrix: {X.shape[1]} features (TF-IDF + {len(meta_names)} metadata)")
 
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state = 42, stratify = y
@@ -93,7 +123,5 @@ def prepare_data(db_engine, vectorizer_path: str = 'data/tfidf_vectorizer.pkl'):
 
     joblib.dump(vectorizer, vectorizer_path)
     logger.info(f"Vectorizer saved to: {vectorizer_path}")
-
-    feature_names = vectorizer.get_feature_names_out()
 
     return X_train, X_test, y_train, y_test, feature_names
