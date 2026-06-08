@@ -4,7 +4,7 @@ import time
 import pandas as pd
 from sklearn.base import clone
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, f1_score
+from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
 
 from src.database import DatabaseManager
 from src.preprocessing import load_and_clean, build_vectorizer
@@ -49,30 +49,32 @@ def compare_representations(
 
             y_pred = model.predict(X_test)
             acc = accuracy_score(y_test, y_pred)
-            f1 = f1_score(y_test, y_pred, average="weighted")
+            f1 = f1_score(y_test, y_pred, average="macro")
+            cm = confusion_matrix(y_test, y_pred)
             logger.info(
-                f"  {model_name}: accuracy={acc:.4f}, f1_weighted={f1:.4f}, "
+                f"  {model_name}: accuracy={acc:.4f}, f1_macro={f1:.4f}, "
                 f"train_time={train_time:.1f}s"
             )
+            logger.info(f"  confusion matrix:\n{cm}")
 
             results.append({
                 "representation": rep["name"],
                 "model": model_name,
                 "n_features": n_features,
                 "accuracy": acc,
-                "f1_weighted": f1,
+                "f1_macro": f1,
                 "train_time_s": round(train_time, 1),
             })
 
     df = pd.DataFrame(results)
 
-    pivot = df.pivot(index="representation", columns="model", values="f1_weighted")
-    logger.info(f"\nF1 (weighted) - representation x model:\n{pivot.to_string()}")
+    pivot = df.pivot(index="representation", columns="model", values="f1_macro")
+    logger.info(f"\nF1 (macro) - representation x model:\n{pivot.to_string()}")
 
-    best = df.loc[df["f1_weighted"].idxmax()]
+    best = df.loc[df["f1_macro"].idxmax()]
     logger.info(
         f"Best combination: {best['representation']} + {best['model']} "
-        f"(F1={best['f1_weighted']:.4f})"
+        f"(F1={best['f1_macro']:.4f})"
     )
     return df
 
