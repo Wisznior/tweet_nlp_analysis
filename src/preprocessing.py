@@ -70,6 +70,12 @@ def load_and_clean(db_engine) -> tuple:
     logger.info(f"Loaded {len(df)} tweets")
 
     df = df.dropna(subset=['content', 'retweets'])
+    
+    df['date'] = pd.to_datetime(df['date'], errors='coerce')
+    df = df.dropna(subset=['date'])
+    df['year'] = df['date'].dt.year
+    df['month'] = df['date'].dt.month
+
     df['clean'] = df['content'].apply(clean_text)
 
     before = len(df)
