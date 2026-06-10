@@ -1,6 +1,6 @@
 import logging
 from dotenv import load_dotenv
-load_dotenv() 
+load_dotenv()
 import pandas as pd
 from typing import List
 from src.utils.logger import setup_logging
@@ -10,10 +10,10 @@ from src.preprocessing import prepare_data
 import joblib
 from src.modeling import train_and_evaluate_all, save_model
 from src.interpretation import run_interpretation
+from src.temporal_analysis import run_temporal_analysis
 
 def main():
     setup_logging(log_level=logging.INFO, log_file="data/project_run.log")
-
     logger = logging.getLogger(__name__)
     logger.info('Started data processing')
 
@@ -28,7 +28,7 @@ def main():
         if not csv_files:
             logger.error("No data to process")
             return
-        target_file: str = next((f for f in csv_files if  "realdonaldtrump" in f.lower()), csv_files[0])
+        target_file: str = next((f for f in csv_files if "realdonaldtrump" in f.lower()), csv_files[0])
 
         logger.info(f"Getting data from: {target_file}")
         df: pd.DataFrame = pd.read_csv(target_file)
@@ -36,7 +36,7 @@ def main():
         db_mgr = DatabaseManager(DB_PATH)
         db_mgr.save_dataframe(df, 'raw_tweets')
 
-        logger.info("Startring preprocessing")
+        logger.info("Starting preprocessing")
         X_train, X_test, y_train, y_test, feature_names = prepare_data(
             db_engine=db_mgr.get_engine(),
             vectorizer_path="data/tfidf_vectorizer.pkl",
@@ -70,10 +70,15 @@ def main():
         )
         logger.info("Interpretation completed.")
 
-        logger.info("Succeded!")
+        logger.info("Starting temporal analysis")
+        run_temporal_analysis(DB_PATH)
+        logger.info("Temporal analysis completed.")
+
+        logger.info("Succeeded!")
 
     except Exception as e:
-        logger.critical(f"Got an error: {e}", exc_info = True)
+        logger.critical(f"Got an error: {e}", exc_info=True)
+
 
 if __name__ == "__main__":
     main()
